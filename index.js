@@ -1,41 +1,32 @@
 const http = require('http');
 const fetch = require('node-fetch');
 
-function getStockData(symbol){
-    let url = "https://www.reddit.com/r/popular.json";
+var stockDataArray = [];
+async function getStockData(){
+    const API_Key = 'MFBETSKQD126AMHH';
+    let StockSymbol = "TSLA";
+    let url = `https://www.alphavantage.co/query?function=TIME_SERIES_DAILY_ADJUSTED&symbol=${StockSymbol}&apikey=${API_Key}`
+    //let url = "https://www.reddit.com/r/popular.json";
     let settings = { method: "Get" };
 
-    fetch(url, settings)
+    await fetch(url, settings)
         .then(res => res.json())
         .then((json) => {
-            return json;
+            
+            stockDataArray.push({symbol:json["Meta Data"]["2. Symbol"]})
     });
 }
 
 
 const server = http.createServer(function (req, res) {
     console.log(`${req.method} request received at ${req.url}`);
-    if (req.url === '/html') {
-        res.setHeader('Content-Type', 'text/html');
-        res.statusCode = 200; // 200 = OK
-        res.write("<h1>Demo page</h1>");
-        res.end();
-    } else if (req.url === '/plain') {
-        res.setHeader('Content-Type', 'text/plain');
-        res.statusCode = 200; // 200 = OK
-        res.write("<h1>Demo page</h1>");
-        res.end();
-    } else if (req.url === '/json') {
-        res.setHeader('Content-Type', 'application/json');
-        res.statusCode = 200; // 200 = OK
-        res.write(JSON.stringify({"firstName": "Harry", "lastName": "Potter"}));
-        res.end();
-    } else {
-        res.setHeader('Content-Type', 'text/html');
-        res.statusCode = 400; // 400 = Bad request
-        res.write("<h1>Sorry, this page is not available</h1>");
-        res.end();
-    }
+    
+   
+    res.setHeader('Content-Type', 'application/json');
+    res.statusCode = 200; // 200 = OK
+    res.write(JSON.stringify(stockDataArray.symbol));
+    res.end();
+    } 
 });
 
 server.listen(3000, function () {

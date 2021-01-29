@@ -44,10 +44,10 @@ async function checkMemory(symbol){
     if (!isInMem){
         getStockData(symbol)
     }
-    return stockData;
-
+    
+    return stockData[symbol]
 }
-console.log(stockData)
+
 
 const server = http.createServer(function (req, res) {
     console.log(`${req.method} request received at ${req.url}`);
@@ -57,7 +57,7 @@ const server = http.createServer(function (req, res) {
     console.log(result);
     res.setHeader('Content-Type', 'application/json');
     res.statusCode = 200; // 200 = OK
-    res.write(JSON.stringify(stockData));
+    res.write(JSON.stringify(result));
     res.end();
     
     

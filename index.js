@@ -57,7 +57,7 @@ const server = http.createServer(function (req, res) {
     console.log(result);
     res.setHeader('Content-Type', 'application/json');
     res.statusCode = 200; // 200 = OK
-    res.write(JSON.stringify(result));
+    res.write(JSON.stringify(stockData));
     res.end();
     
     

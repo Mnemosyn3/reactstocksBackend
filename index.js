@@ -2,14 +2,14 @@ const http = require('http');
 const fetch = require('node-fetch');
 
 var stockData = {};
-async function getStockData(StockSymbol){
+function getStockData(StockSymbol){
     const API_Key = 'MFBETSKQD126AMHH';
    
     let url = `https://www.alphavantage.co/query?function=TIME_SERIES_DAILY_ADJUSTED&symbol=${StockSymbol}&apikey=${API_Key}`
     
     let settings = { method: "Get" };
 
-    await fetch(url, settings)
+    fetch(url, settings)
         .then(res => res.json())
         .then((json) => {
             
@@ -33,13 +33,7 @@ async function getStockData(StockSymbol){
     });
 }
 
-
-console.log(stockData)
-
-const server = http.createServer(function (req, res) {
-    console.log(`${req.method} request received at ${req.url}`);
-    
-    var symbol = req.url.substring(1);
+async function checkMemory(symbol){
     var isInMem = false;
     for(var key in stockData){
         if (key == symbol){
@@ -50,14 +44,25 @@ const server = http.createServer(function (req, res) {
     if (!isInMem){
         getStockData(symbol)
     }
+    return stockData;
 
+}
+console.log(stockData)
+
+const server = http.createServer(function (req, res) {
+    console.log(`${req.method} request received at ${req.url}`);
+    
+    var symbol = req.url.substring(1);
+    result = checkMemory(symbol);
+    console.log(result);
     res.setHeader('Content-Type', 'application/json');
     res.statusCode = 200; // 200 = OK
-    res.write(JSON.stringify(stockData));
+    res.write(JSON.stringify(result));
     res.end();
+    
     
 });
 
-server.listen(3000, function () {
-    console.log("Listening on port http://localhost:3000");
+server.listen(3005, function () {
+    console.log("Listening on port http://localhost:3005");
 });

@@ -1,15 +1,6 @@
 const http = require('http');
 const fetch = require('node-fetch');
-var stockData = {TSLA: {
-    '2021-02-12': {
-      open: '801.26',
-      high: '817.33',
-      low: '785.3306',
-      close: '816.12',
-      volume: undefined
-    },
- 
-  }};
+var stockData = {};
 
 function getStockData(StockSymbol){
     const API_Key = 'MFBETSKQD126AMHH';
@@ -18,10 +9,13 @@ function getStockData(StockSymbol){
     
     let settings = { method: "Get" };
 
+    if(StockSymbol=="favicon.ico"){
+        return undefined;
+    }
+
     fetch(url, settings)
         .then(res => res.json())
         .then((json) => {
-
             if (json.hasOwnProperty('Note')) {
                 console.log("API timeout retrying in 60s");
                 setTimeout(() => {getStockData(StockSymbol)}, 60000);
@@ -30,7 +24,6 @@ function getStockData(StockSymbol){
             var stock = {};
             
             for(var key in json['Time Series (Daily)']){
-                console.log("PRINTING KEY"+key);
                 stock[key]={
                     open:json['Time Series (Daily)'][key]['1. open'],
                     high:json['Time Series (Daily)'][key]['2. high'],
@@ -40,10 +33,9 @@ function getStockData(StockSymbol){
                 };
                 
             }
-            console.log("METADATA "+ json['Meta Data']);
             stockData[json['Meta Data']['2. Symbol']]=stock;
 
-    }).catch((err) =>{console.log("ERROR IN FETCH FROM AV "+err+"\n")});
+    }).catch((err) =>console.log("ERROR IN FETCH FROM AV "+err+"\n"));
 }
 
 function checkMemory(symbol) {
@@ -59,17 +51,20 @@ function checkMemory(symbol) {
 }
 
 
-
 const server = http.createServer();
-server.on('request', async (req, response) => {
+server.on('request', (req, response) => {
     var symbol = req.url.substring(1);
     isInMem = checkMemory(symbol);
     response.setHeader('Content-Type', 'application/json');
     response.statusCode = 200; // 200 = OK
     if (isInMem == false){
         getStockData(symbol);
-    }    
-    response.write(JSON.stringify(stockData[symbol]));
+    }
+    var data = JSON.stringify(stockData[symbol]);
+    if(data==undefined){
+        data="Please refresh page";
+    }
+    response.write(data);
     response.end();
 });
 server.listen(3005);
